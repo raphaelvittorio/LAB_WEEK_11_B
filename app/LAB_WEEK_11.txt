@@ -1,0 +1,33 @@
+Part 3:
+
+1. When a user takes a picture, that picture is stored in a path based on the given URI. In which part of the code handles this?
+
+Bagian kode yang menangani pembuatan path file dan URI tersebut terdapat di dalam fungsi generatePhotoUri pada file ProviderFileManager.kt. Kode ini menentukan lokasi penyimpanan fisik (file) dan menghasilkan URI menggunakan FileHelper .
+
+2. In your FileInfo.kt, there are 5 attributes. On the first attribute, what does the URI refer to? And on the fourth attribute, what does relativePath refer to?
+
+URI (First Attribute): URI ini merujuk pada content:// URI yang dihasilkan oleh FileProvider . URI ini bersifat sementara dan digunakan untuk memberikan akses yang aman kepada aplikasi eksternal (seperti aplikasi Kamera) agar dapat menulis data gambar ke file privat aplikasi kita.
+
+relativePath (Fourth Attribute): Atribut ini merujuk pada nama folder kategori di mana file tersebut akan diorganisir di dalam penyimpanan eksternal/MediaStore, dalam kasus ini adalah folder "Pictures" (Environment.DIRECTORY_PICTURES) . Ini digunakan oleh MediaStore (terutama pada Android 10/Q ke atas) untuk menentukan struktur direktori penyimpanan file.
+
+3. Explain the chronological order from when a user takes a picture until the file is stored in the MediaStore.
+
+Urutan kronologisnya adalah sebagai berikut:
+
+
+User Click & Permission: Pengguna menekan tombol foto di MainActivity dan aplikasi memeriksa izin penyimpanan .
+
+Generate URI: Fungsi openImageCapture() dipanggil, yang kemudian memanggil providerFileManager.generatePhotoUri(). Di sini, sebuah file kosong dibuat di penyimpanan internal aplikasi dan sebuah URI FileProvider dibuat untuk file tersebut .
+
+
+
+Launch Camera: takePictureLauncher diluncurkan dengan membawa URI tersebut, membuka aplikasi kamera bawaan.
+
+Capture: Pengguna mengambil foto. Aplikasi kamera menyimpan data gambar ke lokasi URI yang diberikan tadi.
+
+Callback: Setelah foto diambil, kontrol kembali ke MainActivity melalui callback registerForActivityResult. Callback ini memanggil providerFileManager.insertImageToStore() .
+
+
+Insert to MediaStore: Fungsi insertImageToStore menggunakan MediaContentHelper untuk menyiapkan metadata (ContentValues) dan URI tujuan di MediaStore .
+
+Copy Data: Fungsi insertToStore dijalankan. Ia memasukkan metadata ke ContentResolver untuk mendapatkan URI baru di MediaStore (insertedUri). Kemudian, data gambar disalin (IOUtils.copy) dari file sementara (URI awal) ke lokasi baru di MediaStore (insertedUri) .
